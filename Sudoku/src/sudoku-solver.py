@@ -1,41 +1,59 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import random
 
-class ResolvedorSudoku:
+class SudokuSolver:
     def __init__(self, root):
         self.root = root
         self.root.title("Resolvedor de Sudoku")
-        self.grade = [[0]*9 for _ in range(9)]
-        self.fixos = [[False]*9 for _ in range(9)]
-        self.criar_widgets()
-        self.gerar_novo_puzzle('fácil')
+        self.root.minsize(400, 400)
+        self.grid = [[0]*9 for _ in range(9)]
+        self.fixed = [[False]*9 for _ in range(9)]
+        self.create_widgets()
+        self.generate_new_puzzle('fácil')
+        self.configure_grid_resize()
 
-    def criar_widgets(self):
-        frame_controle = tk.Frame(self.root)
-        frame_controle.grid(row=0, column=0, columnspan=9)
-        
-        self.dificuldade = tk.StringVar()
-        self.seletor_dificuldade = ttk.Combobox(frame_controle, textvariable=self.dificuldade, 
-                                              values=('fácil', 'médio', 'difícil'), width=8)
-        self.seletor_dificuldade.grid(row=0, column=0, padx=5)
-        
-        self.botao_novo = ttk.Button(frame_controle, text='Novo Jogo', 
-                                    command=lambda: self.gerar_novo_puzzle(self.dificuldade.get()))
-        self.botao_novo.grid(row=0, column=1, padx=5)
-        
-        self.botao_resolver = ttk.Button(frame_controle, text='Resolver', command=self.resolver_puzzle)
-        self.botao_resolver.grid(row=0, column=2, padx=5)
+    def configure_grid_resize(self):
+        for i in range(9):
+            self.root.grid_columnconfigure(i, weight=1)
+            self.root.grid_rowconfigure(i+1, weight=1)
+        self.root.grid_rowconfigure(0, weight=0)
 
-        self.campos = [[None]*9 for _ in range(9)]
+    def create_widgets(self):
+        control_frame = tk.Frame(self.root)
+        control_frame.grid(row=0, column=0, columnspan=9, sticky='ew', pady=10)
+        
+        self.difficulty = tk.StringVar(value='fácil')
+        self.diff_select = ttk.Combobox(control_frame, textvariable=self.difficulty, 
+                                      values=('fácil', 'médio', 'difícil'), width=10)
+        self.diff_select.grid(row=0, column=0, padx=5)
+        
+        self.new_btn = ttk.Button(control_frame, text='Novo Jogo', 
+                                command=lambda: self.generate_new_puzzle(self.difficulty.get()))
+        self.new_btn.grid(row=0, column=1, padx=5)
+        
+        self.solve_btn = ttk.Button(control_frame, text='Resolver', command=self.solve_puzzle)
+        self.solve_btn.grid(row=0, column=2, padx=5)
+
+        self.entries = [[None]*9 for _ in range(9)]
         for i in range(9):
             for j in range(9):
-                campo = tk.Entry(self.root, width=2, font=('Arial', 18), justify='center')
-                campo.grid(row=i+1, column=j, padx=1, pady=1)
-                self.campos[i][j] = campo
+                validate_cmd = (self.root.register(self.validate_input), '%P')
+                entry = tk.Entry(self.root, width=3, font=('Arial', 16), justify='center',
+                               validate='key', validatecommand=validate_cmd)
+                entry.grid(row=i+1, column=j, padx=2, pady=2, sticky='nsew')
+                self.entries[i][j] = entry
 
-    def gerar_novo_puzzle(self, dificuldade):
-        grade_base = [
+    def validate_input(self, value):
+        """Valida se a entrada é um número entre 1 e 9 ou vazio"""
+        if value == "":
+            return True
+        if value.isdigit() and 1 <= int(value) <= 9:
+            return True
+        return False
+
+    def generate_new_puzzle(self, difficulty):
+        base_grid = [
             [5, 3, 4, 6, 7, 8, 9, 1, 2],
             [6, 7, 2, 1, 9, 5, 3, 4, 8],
             [1, 9, 8, 3, 4, 2, 5, 6, 7],
@@ -47,81 +65,78 @@ class ResolvedorSudoku:
             [3, 4, 5, 2, 8, 6, 1, 7, 9]
         ]
         
-        remocoes = {'fácil': 30, 'médio': 40, 'difícil': 50}[dificuldade]
-        self.grade = [linha.copy() for linha in grade_base]
+        removals = {'fácil': 30, 'médio': 40, 'difícil': 50}[difficulty]
+        self.grid = [row.copy() for row in base_grid]
         
-        for _ in range(remocoes):
-            linha = random.randint(0, 8)
-            coluna = random.randint(0, 8)
-            while self.grade[linha][coluna] == 0:
-                linha = random.randint(0, 8)
-                coluna = random.randint(0, 8)
-            self.grade[linha][coluna] = 0
+        for _ in range(removals):
+            row = random.randint(0, 8)
+            col = random.randint(0, 8)
+            while self.grid[row][col] == 0:
+                row = random.randint(0, 8)
+                col = random.randint(0, 8)
+            self.grid[row][col] = 0
 
-        self.fixos = [[self.grade[i][j] != 0 for j in range(9)] for i in range(9)]
+        self.fixed = [[self.grid[i][j] != 0 for j in range(9)] for i in range(9)]
         
         for i in range(9):
             for j in range(9):
-                self.campos[i][j].delete(0, tk.END)
-                if self.grade[i][j] != 0:
-                    self.campos[i][j].insert(0, str(self.grade[i][j]))
-                self.campos[i][j].config(
-                    state='disabled' if self.fixos[i][j] else 'normal',
-                    disabledbackground='#f0f0f0' if self.fixos[i][j] else 'white'
+                self.entries[i][j].delete(0, tk.END)
+                if self.grid[i][j] != 0:
+                    self.entries[i][j].insert(0, str(self.grid[i][j]))
+                self.entries[i][j].config(
+                    state='disabled' if self.fixed[i][j] else 'normal',
+                    disabledbackground='#f0f0f0' if self.fixed[i][j] else 'white',
+                    fg='black' if self.fixed[i][j] else 'blue'
                 )
 
-    def resolver_puzzle(self):
-        for i in range(9):
-            for j in range(9):
-                if not self.fixos[i][j]:
-                    valor = self.campos[i][j].get()
-                    self.grade[i][j] = int(valor) if valor.isdigit() else 0
-        
-        if self.resolver():
+    def solve_puzzle(self):
+        if self.solve():
             for i in range(9):
                 for j in range(9):
-                    if not self.fixos[i][j]:
-                        self.campos[i][j].delete(0, tk.END)
-                        self.campos[i][j].insert(0, str(self.grade[i][j]))
+                    if not self.fixed[i][j]:
+                        self.entries[i][j].delete(0, tk.END)
+                        self.entries[i][j].insert(0, str(self.grid[i][j]))
+                        self.entries[i][j].config(fg='green')
+            messagebox.showinfo("Sucesso", "Sudoku resolvido com sucesso!")
         else:
-            print("Não existe solução")
+            messagebox.showerror("Erro", "Não foi possível resolver o Sudoku")
 
-    def resolver(self):
-        vazio = self.encontrar_vazio()
-        if not vazio:
+    def solve(self):
+        empty = self.find_empty()
+        if not empty:
             return True
-        linha, coluna = vazio
+        row, col = empty
         
         for num in range(1, 10):
-            if self.eh_valido(linha, coluna, num):
-                self.grade[linha][coluna] = num
-                if self.resolver():
+            if self.is_valid(row, col, num):
+                self.grid[row][col] = num
+                if self.solve():
                     return True
-                self.grade[linha][coluna] = 0
+                self.grid[row][col] = 0
         return False
 
-    def encontrar_vazio(self):
+    def find_empty(self):
         for i in range(9):
             for j in range(9):
-                if self.grade[i][j] == 0:
+                if self.grid[i][j] == 0:
                     return (i, j)
         return None
 
-    def eh_valido(self, linha, coluna, num):
-        if num in self.grade[linha]:
+    def is_valid(self, row, col, num):
+        if num in self.grid[row]:
             return False
         
-        if num in [self.grade[i][coluna] for i in range(9)]:
+        if num in [self.grid[i][col] for i in range(9)]:
             return False
         
-        linha_inicio, coluna_inicio = 3*(linha//3), 3*(coluna//3)
+        start_row, start_col = 3*(row//3), 3*(col//3)
         for i in range(3):
             for j in range(3):
-                if self.grade[linha_inicio+i][coluna_inicio+j] == num:
+                if self.grid[start_row+i][start_col+j] == num:
                     return False
         return True
 
 if __name__ == "__main__":
     root = tk.Tk()
-    jogo = ResolvedorSudoku(root)
+    game = SudokuSolver(root)
     root.mainloop()
