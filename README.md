@@ -31,6 +31,7 @@ O **Resolvedor de Sudoku** é uma aplicação que combina:
 - Geração procedural de quebra-cabeças
 - Três níveis de dificuldade (Fácil, Médio, Difícil)
 - Modo de interação manual para resolução humana
+- **Nova funcionalidade**: Botão "Limpar" para resetar o tabuleiro, mantendo apenas as células fixas do puzzle original
 
 O projeto foi desenvolvido em **Python** utilizando **Tkinter** para a interface gráfica, implementando conceitos avançados de algoritmos e programação orientada a objetos.
 
@@ -42,6 +43,7 @@ Demonstrar na prática:
 - Desenvolvimento de interfaces gráficas
 - Geração procedural de problemas lógicos
 - Boas práticas de estruturação de código
+- **Aprimoramento da experiência do usuário** com novas funcionalidades
 
 ---
 
@@ -58,6 +60,7 @@ Este projeto permitiu explorar:
 - Manipulação de matrizes multidimensionais
 - Validação de entradas do usuário
 - Controle de estados da aplicação
+- **Gerenciamento de células fixas e editáveis**
 
 ---
 
@@ -68,6 +71,7 @@ Este projeto permitiu explorar:
 - **Interface interativa**: Edição direta nos campos numéricos
 - **Validação em tempo real**: Destaque de conflitos numéricos
 - **Reset seguro**: Reinício completo do jogo atual
+- **Nova funcionalidade**: Limpeza do tabuleiro mantendo células fixas
 
 ---
 
@@ -75,7 +79,8 @@ Este projeto permitiu explorar:
 ```plaintext
 sudoku-solver/
 │
-├── sudoku_solver.py       # Código principal da aplicação
+├── src/                   # Pasta contendo o código fonte
+│   └── sudoku_solver.py   # Código principal da aplicação
 ├── README.md              # Documentação do projeto
 └── LICENSE                # Licença MIT
 ```
