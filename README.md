@@ -48,7 +48,10 @@ Demonstrar na prática:
 ---
 
 ## 🎥 Demonstração  
-(Inserir screenshot ou GIF demonstrando a interface)
+
+
+https://github.com/user-attachments/assets/1168eb0a-01af-491f-ba02-4ccddebb8912
+
 
 ---
 
